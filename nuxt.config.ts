@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   nitro: {
     storage: {
       'games': {
-        driver: 'fs',
+        driver: 'vercel-blob',
         base: 'data/games',
       }
     },
