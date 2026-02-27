@@ -20,6 +20,10 @@ const names: Partial<Record<CardType, string>> = {
   [Jokers.DrawOne]: 'Draw 1',
   [Jokers.PlusTwo]: '+2',
 }
+const effectDescriptions: Partial<Record<Jokers, string>> = {
+  [Jokers.DrawOne]: 'Can make any player (you included) draw a new card.',
+  [Jokers.PlusTwo]: 'Acts like a 2 but you can add it to an opponent\'s hand and make it bust.',
+}
 </script>
 
 <template>
@@ -29,6 +33,10 @@ const names: Partial<Record<CardType, string>> = {
       <span class="card-value">{{ names[card.type] || card.type }}</span>
     </div>
     <i id="bottom-right" class="card-color" :class="icon[card.color]"/>
+    <div v-if="card.color === 'joker'" class="card-tooltip">
+      <p class="font-semibold">{{ names[card.type] }}</p>
+      <p>{{ effectDescriptions[card.type as Jokers] }}</p>
+    </div>
   </div>
 </template>
 
@@ -66,7 +74,26 @@ const names: Partial<Record<CardType, string>> = {
   }
 
   &-joker {
-    @apply bg-linear-to-br from-gray-300 to-gray-500;
+    @apply bg-white;
+
+    .card-value {
+      @apply text-lg font-extrabold text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-blue-500;
+    }
+
+    .card-color {
+      @apply text-lg text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-blue-500;
+    }
+
+    .card-tooltip {
+      @apply absolute bottom-full mb-2 w-48 p-3 bg-white border border-gray-300 rounded shadow-lg text-sm text-gray-700;
+      @apply z-50;
+      @apply opacity-0 invisible;
+      @apply transition-opacity duration-200;
+    }
+
+    &:hover .card-tooltip {
+      @apply opacity-100 visible;
+    }
   }
 
   &-diamonds,
