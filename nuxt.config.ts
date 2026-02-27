@@ -18,6 +18,7 @@ export default defineNuxtConfig({
     ],
   },
   nitro: {
+    preset: 'bun',
     storage: {
       'games': {
         driver: 'fs',
