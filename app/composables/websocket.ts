@@ -54,7 +54,7 @@ export const connectToGameWebSocket = (socket?: Ref<WebSocket | null>) => {
     return
   }
 
-  const ws = new WebSocket(`ws://${window.location.host}/ws/game`)
+  const ws = new WebSocket(`wss://${window.location.host}/ws/game`)
 
   ws.onopen = () => {
     console.log('WebSocket connection established')
