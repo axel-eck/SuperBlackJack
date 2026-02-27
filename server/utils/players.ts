@@ -2,6 +2,7 @@ import { getGameById } from "#server/utils/game";
 import { getHandScore } from "#shared/types/hand";
 import { playDrawOneEffect } from "#server/utils/jokers/DrawOne";
 import { isJokerCard } from "#shared/types/cards";
+import { playPlusTwoEffect } from "#server/utils/jokers/PlusTwo";
 
 export const playCard = async (gameId: GameId, playerId: PlayerId, cardIndex: number, toHandIndex: number) => {
   const game = await getGameById(gameId);
@@ -92,7 +93,7 @@ export const getBestPlayerHandScore = async (gameId: GameId, playerId: PlayerId,
   return Math.max(...player.hands.map(hand => getHandScore(hand, includeModifier ? player.scoreModifier : 0)));
 }
 
-export const computePlayerScore = async (gameId: GameId, playerId: PlayerId, includeModifier: boolean = false): Promise<number> => {
+export const computePlayerScore = async (gameId: GameId, playerId: PlayerId): Promise<number> => {
   const game = await useStorage<Game>('games').getItem(gameId);
   if (!game) {
     throw new Error('Game not found')
@@ -101,14 +102,14 @@ export const computePlayerScore = async (gameId: GameId, playerId: PlayerId, inc
   if (!player) {
     throw new Error('Player not found in game')
   }
-  return player.hands.map(hand => getHandScore(hand, includeModifier ? player.scoreModifier : 0))
-    .map(s => s == -1 ? 0 : s).reduce((acc, score) => acc + score, 0);
+  return computeHandsScore(player.hands);
 }
 
 export type JokerEffectHandler = (gameId: GameId, fromPlayer: PlayerId, toPlayer: PlayerId, toHandIndex: number) => Promise<void>
 
 const jokerEffectHandlers: Partial<Record<Jokers, JokerEffectHandler>> = {
-  [Jokers.DrawOne]: playDrawOneEffect
+  [Jokers.DrawOne]: playDrawOneEffect,
+  [Jokers.PlusTwo]: playPlusTwoEffect
 }
 
 export const playJoker = async (gameId: GameId, fromPlayerId: PlayerId, cardIndex: number, toPlayerId: PlayerId, toHandIndex: number) => {
@@ -143,7 +144,7 @@ export const playJoker = async (gameId: GameId, fromPlayerId: PlayerId, cardInde
 
   const jokerEffectHandler = jokerEffectHandlers[(card as JokerCard).type]
   if (!jokerEffectHandler) {
-    throw new Error('No effect handler for this joker type')
+    console.warn('No handler for joker type:', (card as JokerCard).type)
   }
 
   // Play the joker card
@@ -151,7 +152,9 @@ export const playJoker = async (gameId: GameId, fromPlayerId: PlayerId, cardInde
   game.players[fromPlayerIndex]!.inventory.splice(cardIndex, 1)
   game.passCount = 0;
   await useStorage<Game>('games').set(gameId, game)
-  await jokerEffectHandler(gameId, fromPlayerId, toPlayerId, toHandIndex);
+  if (jokerEffectHandler) {
+    await jokerEffectHandler(gameId, fromPlayerId, toPlayerId, toHandIndex);
+  }
 }
 
 export const discardCard = async (gameId: GameId, playerId: PlayerId, cardIndex: number) => {
@@ -162,9 +165,6 @@ export const discardCard = async (gameId: GameId, playerId: PlayerId, cardIndex:
   const player = game.players.find(p => p.id === playerId);
   if (!player) {
     throw new Error('Player not found in game')
-  }
-  if (game.players[game.turnIndex]?.id !== playerId) {
-    throw new Error('It is not the player\'s turn')
   }
   if (game.state !== 'playing') {
     throw new Error('Game is not in playing state')

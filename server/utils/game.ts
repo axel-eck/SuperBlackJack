@@ -212,7 +212,7 @@ export const stopGame = async (gameId: GameId) => {
   const comparablePlayers = await Promise.all(game.players.map(async (player) => {
     return {
       player,
-      score: await computePlayerScore(gameId, player.id, true)
+      score: await computePlayerScore(gameId, player.id)
     }
   }));
   const winner = comparablePlayers.sort((a, b) => b.score - a.score)[0];

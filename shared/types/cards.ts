@@ -26,6 +26,41 @@ export enum NormalCardType {
 export enum Jokers {
   DrawOne = 'draw_one',
   PlusTwo = 'plus_two',
+  Discard = 'discard',
+}
+
+export type JokerRequirements = {
+  requierePlayer: boolean,
+  requiereHand: boolean,
+  requiereCard: boolean
+  canTargetSelf: boolean
+}
+
+export const JOKER_REQUIREMENTS: Record<Jokers, JokerRequirements> = {
+  [Jokers.DrawOne]: {
+    requierePlayer: true,
+    requiereHand: false,
+    requiereCard: false,
+    canTargetSelf: true
+  },
+  [Jokers.PlusTwo]: {
+    requierePlayer: true,
+    requiereHand: true,
+    requiereCard: false,
+    canTargetSelf: true
+  },
+  [Jokers.Discard]: {
+    requierePlayer: true,
+    requiereHand: false,
+    requiereCard: false,
+    canTargetSelf: false
+  }
+}
+
+export const JOKER_DESCRIPTIONS: Record<Jokers, string> = {
+  [Jokers.DrawOne]: 'Draw one card',
+  [Jokers.PlusTwo]: 'Acts as a normal card with value 2, but can be played on any hand and make a player bust',
+  [Jokers.Discard]: 'Discard a random card from an inventory'
 }
 
 export type CardType = NormalCardType | Jokers
@@ -78,7 +113,8 @@ const CARD_COUNT: Record<CardColor, CardType[]> = {
   ],
   ['joker']: [
     ...multiplyArray([Jokers.DrawOne], 5),
-    ...multiplyArray([Jokers.PlusTwo], 2)
+    ...multiplyArray([Jokers.PlusTwo], 2),
+    ...multiplyArray([Jokers.Discard], 5)
   ]
 }
 
@@ -112,6 +148,9 @@ export const isFaceCard = (card: Card | CardType) : boolean => {
 
 export const getCardValue = (card: Card): number => {
   if (isJokerCard(card)) {
+    if (card.type === Jokers.PlusTwo) {
+      return 2;
+    }
     return 0;
   }
   if (isFaceCard(card)) {

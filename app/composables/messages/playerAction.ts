@@ -1,8 +1,10 @@
 import { useGame } from "~/composables/game";
-import type { PlayJokerAction } from "#shared/types/ws/actions";
+import { playPlusTwoEffect } from "~/composables/jokers/PlusTwo";
+import { playDiscardEffect } from "~/composables/jokers/Discard";
 
 const jokerHandlers: Partial<Record<Jokers, JokerHandler>> = {
-
+  [Jokers.PlusTwo]: playPlusTwoEffect,
+  [Jokers.Discard]: playDiscardEffect,
 }
 
 export const onPlayerAction: MessageHandler<'player-action'> = async (message) => {
@@ -14,17 +16,22 @@ export const onPlayerAction: MessageHandler<'player-action'> = async (message) =
     return;
   }
 
-  const playerIdx = game.value.players.findIndex(p => p.id === playerId);
-  if (playerIdx === -1) {
-    console.error('Player not found for action', playerId, 'in game', message.gameId);
-    return;
-  }
-
   switch (action.type) {
-    case 'play-card':
+    case 'play-card': {
+      const playerIdx = game.value.players.findIndex(p => p.id === playerId);
+      if (playerIdx === -1) {
+        console.error('Player not found for action', playerId, 'in game', message.gameId);
+        return;
+      }
       game.value.players[playerIdx]!.hands[action.payload.handIndex]!.cards.push(action.payload.card);
       break;
+    }
     case 'split-hand': {
+      const playerIdx = game.value.players.findIndex(p => p.id === playerId);
+      if (playerIdx === -1) {
+        console.error('Player not found for action', playerId, 'in game', message.gameId);
+        return;
+      }
       const handToSplit = game.value.players[playerIdx]!.hands[action.payload.handIndex];
       if (!handToSplit) {
         console.warn('Invalid hand index for split:', action.payload.handIndex);

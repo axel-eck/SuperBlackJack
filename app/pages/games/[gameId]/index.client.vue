@@ -3,6 +3,7 @@ import PlayingCard from "~/components/PlayingCard.vue";
 import { useGame } from "~/composables/game";
 import { computeHandsScore } from "#shared/types/hand";
 import { discardCard } from "~/composables/player";
+import { JOKER_REQUIREMENTS } from "#shared/types/cards";
 
 const game = useGame();
 const player = usePlayer();
@@ -122,7 +123,11 @@ const copyGameLink = () => {
             if (waitingForPlayerSelection && game?.state === 'playing') {
               selectedPlayerId = p.id;
               waitingForPlayerSelection = false;
-              waitingForOpponentHandSelection = true;
+              if (JOKER_REQUIREMENTS[player!.inventory[cardSelected!]!.type as Jokers].requiereHand) {
+                waitingForOpponentHandSelection = true;
+              } else {
+                submitJoker(0);
+              }
             }
           }"
       >
@@ -189,12 +194,16 @@ const copyGameLink = () => {
         <span>Split</span>
       </button>
       <button
-          v-if="waitingForPlayerSelection && game.state === 'playing'"
+          v-if="cardSelected && waitingForPlayerSelection && game.state === 'playing' && JOKER_REQUIREMENTS[player.inventory[cardSelected]!.type as Jokers].canTargetSelf"
           id="select-self"
           @click="() => {
             selectedPlayerId = player!.id;
             waitingForPlayerSelection = false;
-            waitingForOpponentHandSelection = true;
+            if (JOKER_REQUIREMENTS[player!.inventory[cardSelected!]!.type as Jokers].requiereHand) {
+              waitingForOpponentHandSelection = true;
+            } else {
+              submitJoker(0);
+            }
           }"
       >
         <i class="fas fa-user"/>

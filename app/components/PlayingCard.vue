@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { JOKER_DESCRIPTIONS, JOKER_REQUIREMENTS } from "#shared/types/cards";
+
 const { card, size = 'default' } = defineProps<{
   card: Card
   size?: 'default' | 'small'
@@ -19,10 +21,7 @@ const names: Partial<Record<CardType, string>> = {
   [NormalCardType.King]: 'K',
   [Jokers.DrawOne]: 'Draw 1',
   [Jokers.PlusTwo]: '+2',
-}
-const effectDescriptions: Partial<Record<Jokers, string>> = {
-  [Jokers.DrawOne]: 'Can make any player (you included) draw a new card.',
-  [Jokers.PlusTwo]: 'Acts like a 2 but you can add it to an opponent\'s hand and make it bust.',
+  [Jokers.Discard]: 'Discard',
 }
 </script>
 
@@ -35,7 +34,16 @@ const effectDescriptions: Partial<Record<Jokers, string>> = {
     <i id="bottom-right" class="card-color" :class="icon[card.color]"/>
     <div v-if="card.color === 'joker'" class="card-tooltip">
       <p class="font-semibold">{{ names[card.type] }}</p>
-      <p>{{ effectDescriptions[card.type as Jokers] }}</p>
+      <p>{{ JOKER_DESCRIPTIONS[card.type as Jokers] }}</p>
+      <div class="requirements">
+        <p class="font-semibold">Requirements:</p>
+        <ul class="list-disc list-inside">
+          <li v-if="JOKER_REQUIREMENTS[card.type].requierePlayer">Requires a target player.</li>
+          <li v-if="JOKER_REQUIREMENTS[card.type].requiereHand">Requires a target hand.</li>
+          <li v-if="JOKER_REQUIREMENTS[card.type].requiereCard">Requires a target card.</li>
+          <li v-if="JOKER_REQUIREMENTS[card.type].canTargetSelf">Can be played on yourself.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -89,6 +97,19 @@ const effectDescriptions: Partial<Record<Jokers, string>> = {
       @apply z-50;
       @apply opacity-0 invisible;
       @apply transition-opacity duration-200;
+
+      .requirements {
+        @apply mt-2;
+
+        p {
+          @apply font-semibold mb-1;
+        }
+
+        ul {
+          @apply list-disc list-inside;
+        }
+
+      }
     }
 
     &:hover .card-tooltip {
