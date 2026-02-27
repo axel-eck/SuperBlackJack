@@ -23,6 +23,7 @@ export default defineNuxtConfig({
         driver: 'vercel-blob',
         base: 'games',
         access: "private",
+        token: process.env.BLOB_READ_WRITE_TOKEN || '',
       }
     },
     experimental: {
