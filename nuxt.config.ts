@@ -21,7 +21,8 @@ export default defineNuxtConfig({
     storage: {
       'games': {
         driver: 'vercel-blob',
-        base: 'data/games',
+        base: 'games',
+        access: "private",
       }
     },
     experimental: {
