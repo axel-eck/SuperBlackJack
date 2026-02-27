@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div>
+  <div class="w-screen h-screen">
     <h1>Welcome to the Game Lobby</h1>
     <button @click="navigateTo('/games/new')">
       Create New Game

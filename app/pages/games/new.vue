@@ -26,7 +26,7 @@ const createGame = async () => {
 </script>
 
 <template>
-  <div id="create-game">
+  <div id="create-game" class="w-screen h-screen">
     <h1>Create a New Game</h1>
     <input
       v-model="name"

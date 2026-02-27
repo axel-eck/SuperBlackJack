@@ -39,7 +39,7 @@ useGameWebSocket();
 </script>
 
 <template>
-  <div v-if="publicGame" id="join-game">
+  <div v-if="publicGame" id="join-game" class="w-screen h-screen">
     <h1>Join Game {{ publicGame.name }}</h1>
     <input
       v-model="name"
