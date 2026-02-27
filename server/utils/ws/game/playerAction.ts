@@ -2,7 +2,7 @@ import type { ErrorMessage, PlayerActionMessage } from "#shared/types/ws/message
 import type { Peer } from "crossws";
 import { broadcastToGame, gamesPeers } from "#server/routes/ws/game";
 import { getPlayerTurnId, nextTurn, passTurnForGame } from "#server/utils/game";
-import { getPlayableHandCount, playCard, playJoker, splitHand } from "#server/utils/players";
+import { discardCard, getPlayableHandCount, playCard, playJoker, splitHand } from "#server/utils/players";
 
 export const onPlayerAction = async (message: PlayerActionMessage, peer: Peer) => {
   if (gamesPeers.get(message.gameId)?.find(p => p.peer === peer)?.playerId !== message.content.playerId) {
@@ -36,6 +36,9 @@ export const onPlayerAction = async (message: PlayerActionMessage, peer: Peer) =
       if (await getPlayableHandCount(message.gameId, message.content.playerId) === 0) {
         await nextTurn(message.gameId);
       }
+      break;
+    case "discard-card":
+      await discardCard(message.gameId, message.content.playerId, message.content.action.payload.cardIndex);
       break;
     case "pass":
       await passTurnForGame(message.gameId, message.content.playerId);

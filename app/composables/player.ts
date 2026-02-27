@@ -54,6 +54,7 @@ export const playJoker = (cardIndex: number, toPlayerId: PlayerId, toHandIndex: 
       action: {
         type: 'play-joker',
         payload: {
+          cardType: card.type,
           from: {
             playerId: player.value.id,
             cardIndex
@@ -208,4 +209,34 @@ export const split = (handIndex: number) => {
     cards: [hand.cards.pop()!]
   })
   hand.canPlay = true;
+}
+
+export const discardCard = (cardIndex: number) => {
+  const player = usePlayer();
+  if (!player.value) {
+    throw new Error('Player is not set')
+  }
+  if (cardIndex < 0 || cardIndex >= player.value.inventory.length) {
+    console.warn('Invalid card index:', cardIndex)
+    return
+  }
+  const game = useGame();
+  if (!game.value) {
+    throw new Error('Game is not set')
+  }
+
+  player.value.inventory.splice(cardIndex, 1)
+  sendMessage({
+    type: 'player-action',
+    gameId: game.value.id,
+    content: {
+      playerId: player.value.id,
+      action: {
+        type: 'discard-card',
+        payload: {
+          cardIndex
+        }
+      }
+    }
+  } satisfies PlayerActionMessage)
 }

@@ -48,4 +48,11 @@ export type PlayJokerAction = IAction & {
   }
 }
 
-export type PlayerAction = PlayCardAction | SplitHandAction | DoubleDownAction | PassAction | PlayJokerAction;
+export type DiscardCardAction = IAction & {
+  type: 'discard-card',
+  payload: {
+    cardIndex: number
+  }
+}
+
+export type PlayerAction = PlayCardAction | SplitHandAction | DoubleDownAction | PassAction | PlayJokerAction | DiscardCardAction;

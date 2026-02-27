@@ -153,3 +153,29 @@ export const playJoker = async (gameId: GameId, fromPlayerId: PlayerId, cardInde
   await useStorage<Game>('games').set(gameId, game)
   await jokerEffectHandler(gameId, fromPlayerId, toPlayerId, toHandIndex);
 }
+
+export const discardCard = async (gameId: GameId, playerId: PlayerId, cardIndex: number) => {
+  const game = await getGameById(gameId);
+  if (!game) {
+    throw new Error('Game not found')
+  }
+  const player = game.players.find(p => p.id === playerId);
+  if (!player) {
+    throw new Error('Player not found in game')
+  }
+  if (game.players[game.turnIndex]?.id !== playerId) {
+    throw new Error('It is not the player\'s turn')
+  }
+  if (game.state !== 'playing') {
+    throw new Error('Game is not in playing state')
+  }
+  const card = player.inventory[cardIndex]
+  if (!card) {
+    throw new Error('Invalid card index')
+  }
+
+  // Discard the card
+  player.inventory.splice(cardIndex, 1)
+  game.passCount = 0;
+  await useStorage<Game>('games').set(gameId, game)
+}

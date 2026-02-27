@@ -2,6 +2,7 @@
 import PlayingCard from "~/components/PlayingCard.vue";
 import { useGame } from "~/composables/game";
 import { computeHandsScore } from "#shared/types/hand";
+import { discardCard } from "~/composables/player";
 
 const game = useGame();
 const player = usePlayer();
@@ -186,6 +187,17 @@ const cancelSelection = () => {
       >
         <i class="fas fa-user"/>
         <span>Select self</span>
+      </button>
+      <button
+        v-if="cardSelected !== null && player.isPlayerTurn && game.state === 'playing'"
+        id="discard-card"
+        @click="() => {
+          discardCard(cardSelected!);
+          cancelSelection();
+        }"
+      >
+        <i class="fas fa-trash"/>
+        <span>Discard Card</span>
       </button>
     </div>
     <div id="inventory">

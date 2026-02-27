@@ -6,7 +6,7 @@ import type {
   PlayerTurnMessage
 } from "#shared/types/ws/message";
 import { getHandScore } from "#shared/types/hand";
-import { computePlayerScore, getBestPlayerHandScore } from "#server/utils/players";
+import { computePlayerScore } from "#server/utils/players";
 import { START_HAND_SIZE } from "#shared/types/game";
 
 export const createGame = (name: string): Game => {
@@ -227,30 +227,52 @@ export const stopGame = async (gameId: GameId) => {
   } satisfies GameStateUpdateMessage)
 }
 
-export const nextTurn = async (gameId: GameId) => {
+export const increaseTurnIndex = async (gameId: GameId): Promise<number> => {
   const game = await useStorage<Game>('games').getItem<Game>(gameId)
+  if (!game) {
+    throw new Error('Game not found')
+  }
+  game.turnIndex = (game.turnIndex + 1) % game.players.length
+  await useStorage<Game>('games').set(gameId, game)
+
+  if (game.turnIndex === 0) {
+    // new round, give cards to player to come back to START_HAND_SIZE
+    for (const player of game.players) {
+      const cardsToDeal = START_HAND_SIZE - player.inventory.length;
+      for (let i = 0; i < cardsToDeal; i++) {
+        await dealCardToPlayer(game.id, player.id)
+      }
+    }
+  }
+
+  return game.turnIndex;
+}
+
+export const nextTurn = async (gameId: GameId) => {
+  let game = await useStorage<Game>('games').getItem<Game>(gameId)
   if (!game) {
     throw new Error('Game not found')
   }
   let currentPlayer: Player | null;
   let iterations = 0;
+  let turnIndex = game.turnIndex;
   do {
     if (iterations >= game.players.length) {
       // All players have been checked and none can play, end the round
       await stopGame(gameId);
       return;
     }
-    game.turnIndex = (game.turnIndex + 1) % game.players.length
-    await useStorage<Game>('games').set(gameId, game)
+    turnIndex = await increaseTurnIndex(gameId);
 
-    currentPlayer = game.players[game.turnIndex] ?? null
+    currentPlayer = game.players[turnIndex] ?? null
     iterations++;
   } while (currentPlayer && !await canPlayerPlay(gameId, currentPlayer.id))
+  game = await useStorage<Game>('games').getItem<Game>(gameId) as Game;
   if (currentPlayer) {
     game.players.forEach((p, index) => {
-      p.isPlayerTurn = index === game.turnIndex;
+      p.isPlayerTurn = index === turnIndex;
     })
-    game.players[game.turnIndex]?.hands.forEach((hand) => {
+    game.players[turnIndex]?.hands.forEach((hand) => {
       hand.canPlay = (getHandScore(hand) < 21 && getHandScore(hand) >= 0);
     })
 
