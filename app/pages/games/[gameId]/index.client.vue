@@ -74,6 +74,10 @@ const cancelSelection = () => {
   waitingForOpponentHandSelection.value = false;
   selectedPlayerId.value = null;
 }
+
+const copyGameLink = () => {
+  navigator.clipboard.writeText(window.location.href + '/join');
+}
 </script>
 
 <template>
@@ -86,6 +90,14 @@ const cancelSelection = () => {
         Start Game
       </button>
     </div>
+    <button
+        v-if="game.state === 'waiting'"
+        id="copy-link"
+        @click="() => copyGameLink()"
+    >
+      <i class="fas fa-copy"/>
+      Copy Game Link
+    </button>
     <span v-if="player.isPlayerTurn && game.state === 'playing'" id="your-turn" class="title">
       It's your turn!
     </span>
@@ -244,6 +256,16 @@ const cancelSelection = () => {
 
     &:hover {
       @apply bg-green-600;
+    }
+  }
+
+  #copy-link {
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-full bg-blue-500 text-white px-4 py-2 rounded transition-colors;
+    @apply cursor-pointer;
+    @apply z-20;
+
+    &:hover {
+      @apply bg-blue-600;
     }
   }
 
