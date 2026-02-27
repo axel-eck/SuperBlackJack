@@ -1,0 +1,4 @@
+app = "super-black-jack"
+primary_region = "cdg"
+[build]
+    dockerfile = "Dockerfile"

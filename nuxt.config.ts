@@ -20,10 +20,8 @@ export default defineNuxtConfig({
   nitro: {
     storage: {
       'games': {
-        driver: 'vercel-blob',
-        base: 'games',
-        access: "public",
-        token: process.env.BLOB_READ_WRITE_TOKEN || '',
+        driver: 'fs',
+        base: 'data/games',
       }
     },
     experimental: {
